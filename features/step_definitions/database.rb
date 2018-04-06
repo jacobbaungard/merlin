@@ -1,5 +1,5 @@
 require "sequel"
-
+#Test
 Given(/^I have a database running$/) do
     h = @databaseconfig
     args = "--log-error=./db.log --datadir=./db/data --socket=./db.sock --pid-file=./db.pid"
