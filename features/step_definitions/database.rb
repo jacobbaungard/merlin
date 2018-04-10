@@ -1,23 +1,23 @@
 require "sequel"
-#Test
+
 Given(/^I have a database running$/) do
-    h = @databaseconfig
-    args = "--log-error=./db.log --datadir=./db/data --socket=./db.sock --pid-file=./db.pid"
-    # The reason we use the exact path to mysqld here is because it's not in $PATH. The
-    # alternative is to use mysqld_safe which is in $PATH but it doesn't terminate when
-    # we try to kill it with SIGTERM
-    steps %Q{
+  h = @databaseconfig
+  args = "--log-error=./db.log --datadir=./db/data --socket=./db.sock --pid-file=./db.pid"
+  # The reason we use the exact path to mysqld here is because it's not in $PATH. The
+  # alternative is to use mysqld_safe which is in $PATH but it doesn't terminate when
+  # we try to kill it with SIGTERM
+  steps %Q{
       And I start command mysql_install_db #{args}
       And I start daemon /usr/libexec/mysqld --user=root #{args} --port=#{h.port}
       And I wait for 5 second
     }
-    Sequel.mysql2(:host => h.host, :port => h.port, :username => "root") do |db|
-        db.run "CREATE USER '#{h.user}'@'#{h.host}' IDENTIFIED BY '#{h.pass}'"
-        db.run "CREATE DATABASE #{h.name}"
-        db.run "GRANT ALL PRIVILEGES ON #{h.name}.* To '#{h.user}'@'#{h.host}' IDENTIFIED BY '#{h.pass}'"
-    end
-    Sequel.mysql2(:host => h.host, :port => h.port, :username => h.user, :password => h.pass, :database => h.name) do |db|
-        db.run "CREATE TABLE notification( \
+  Sequel.mysql2(:host => h.host, :port => h.port, :username => "root") do |db|
+    db.run "CREATE USER '#{h.user}'@'#{h.host}' IDENTIFIED BY '#{h.pass}'"
+    db.run "CREATE DATABASE #{h.name}"
+    db.run "GRANT ALL PRIVILEGES ON #{h.name}.* To '#{h.user}'@'#{h.host}' IDENTIFIED BY '#{h.pass}'"
+  end
+  Sequel.mysql2(:host => h.host, :port => h.port, :username => h.user, :password => h.pass, :database => h.name) do |db|
+    db.run "CREATE TABLE notification( \
                     instance_id         int NOT NULL DEFAULT 0, \
                     id                  int NOT NULL PRIMARY KEY AUTO_INCREMENT, \
                     notification_type   int, \
@@ -35,8 +35,8 @@ Given(/^I have a database running$/) do
                     escalated           int, \
                     contacts_notified   int \
                ) COLLATE latin1_general_cs"
-        
-        db.run "CREATE TABLE report_data( \
+
+    db.run "CREATE TABLE report_data( \
                     id                  bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, \
                     timestamp           int(11) NOT NULL DEFAULT '0', \
                     event_type          int(11) NOT NULL DEFAULT '0', \
@@ -55,7 +55,7 @@ Given(/^I have a database running$/) do
                     KEY rd_name_evt_time(`host_name`,`service_description`,`event_type`,`hard`,`timestamp`), \
                     KEY rd_state        (`state`) \
                ) COLLATE latin1_general_cs"
-    end
+  end
 end
 
 Given(/^CONTACT_NOTIFICATION_METHOD is logged in the database (\d+) times? with data$/) do |times, values|
